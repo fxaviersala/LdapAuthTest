@@ -48,10 +48,17 @@ namespace AligaAuth
 
                     // O hi és o no hi és
                     var user = resutatcerca.hasMore() ? resutatcerca.next() : null;
-                    cn.Bind(user.DN, password);
-                    if (cn.Bound)
+                    if (user != null)
                     {
-                        Console.WriteLine(username + UsuariCorrecte);
+                        cn.Bind(user.DN, password);
+                        if (cn.Bound)
+                        {
+                            Console.WriteLine(username + UsuariCorrecte);
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine(UsuariError);
                     }
                 }
                 catch (LdapException)
