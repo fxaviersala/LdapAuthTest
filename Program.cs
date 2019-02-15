@@ -10,6 +10,8 @@ namespace AligaAuth
     {
         private const string UsuariError = "Credencials invàlides\n";
         private const string UsuariCorrecte = " OK\n";
+        private const string LdapCNUser = "cn=readonly,dc=aliga,dc=cat";
+        private const string LdapCNPassword = "passwr0rd!";
 
         static void Main(string[] args) => CommandLineApplication.Execute<Program>(args);
 
@@ -33,7 +35,20 @@ namespace AligaAuth
                 {
                     // connect
                     cn.Connect("localhost", 389);
-                    cn.Bind($"uid={username},ou=People,dc=aliga,dc=cat", password);
+                    // ... Bind CN
+                    cn.Bind(LdapCNUser, LdapCNPassword);
+
+                    // Buscar entre els usuaris
+                    var filtre = $"(uid={username})";
+                    var resutatcerca = cn.Search("ou=People,dc=aliga,dc=cat",
+                                                  LdapConnection.SCOPE_SUB,
+                                                  filtre,
+                                                  null,
+                                                  typesOnly: false);
+
+                    // O hi és o no hi és
+                    var user = resutatcerca.hasMore() ? resutatcerca.next() : null;
+                    cn.Bind(user.DN, password);
                     if (cn.Bound)
                     {
                         Console.WriteLine(username + UsuariCorrecte);
