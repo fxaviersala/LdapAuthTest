@@ -1,53 +1,54 @@
 ﻿using System;
-using System.DirectoryServices;
-using System.DirectoryServices.AccountManagement;
 using McMaster.Extensions.CommandLineUtils;
+using Novell.Directory.Ldap;
 
 namespace AligaAuth
 {
+    [Command(Name = "AligaAuth", Description = "LDAP Tester")]
+    [HelpOption("-?")]
     class Program
     {
-        const string LDAP_PATH = "127.0.0.1:389";
-        const string LDAP_OU_USERS = "ou=People";
-        const string LDAP_DOMAIN = "aliga.cat";
-        const string LDAP_SERVICE_USER = @"uid=admin,ou=system";
-        const string LDAP_SERVICE_PASSWORD = "X1nGuXunG1";
+        private const string UsuariError = "Credencials invàlides\n";
+        private const string UsuariCorrecte = " OK\n";
 
         static void Main(string[] args) => CommandLineApplication.Execute<Program>(args);
 
-        [Option(Description = "Usuari")]
+        [Argument(0, Description = "Usuari")]
         public string Username { get; }
 
-        [Option(Description = "Contrasenya")]
+        [Argument(1, Description = "Contrasenya")]
         public string Password { get; }
 
         private void OnExecute()
         {
-            var username = Username ?? "";
+            var username = Username ?? "helena";
             var password = Password ?? "";
 
-            using (var context = new PrincipalContext(ContextType.Domain, LDAP_DOMAIN, LDAP_OU_USERS, LDAP_SERVICE_USER, LDAP_SERVICE_PASSWORD))
-            {
-                if (context.ValidateCredentials(username, password))
-                {
-                    using (var de = new DirectoryEntry(LDAP_PATH))
-                    using (var ds = new DirectorySearcher(de))
-                    {
+            username = username.ToLower();
+            System.Console.WriteLine($"... Provant usuari: {username} i contrasenya {password}\n");
 
-                        Console.WriteLine("Ok!");
-                        return;
+            using (var cn = new LdapConnection())
+            {
+                try
+                {
+                    // connect
+                    cn.Connect("localhost", 389);
+                    // bind with an username and password
+                    // this how you can verify the password of an user
+                    cn.Bind($"uid={username},ou=People,dc=aliga,dc=cat", password);
+                    // call ldap op
+                    // cn.Delete("<<userdn>>")
+                    // cn.Add(<<ldapEntryInstance>>)
+                    if (cn.Bound)
+                    {
+                        Console.WriteLine(username + UsuariCorrecte);
                     }
                 }
-                else
+                catch (LdapException)
                 {
-                    Console.WriteLine("KO");
+                    Console.WriteLine(UsuariError);
                 }
             }
         }
-
-
-
-
-
     }
 }
