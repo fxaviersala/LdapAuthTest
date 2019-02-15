@@ -33,12 +33,7 @@ namespace AligaAuth
                 {
                     // connect
                     cn.Connect("localhost", 389);
-                    // bind with an username and password
-                    // this how you can verify the password of an user
                     cn.Bind($"uid={username},ou=People,dc=aliga,dc=cat", password);
-                    // call ldap op
-                    // cn.Delete("<<userdn>>")
-                    // cn.Add(<<ldapEntryInstance>>)
                     if (cn.Bound)
                     {
                         Console.WriteLine(username + UsuariCorrecte);
